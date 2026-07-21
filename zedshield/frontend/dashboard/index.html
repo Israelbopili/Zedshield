@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZedShield Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Auth Screen -->
+        <div id="authScreen" style="display:none;">
+            <div class="auth-container">
+                <div class="auth-box">
+                    <div class="auth-logo">
+                        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M20 2L4 10V18C4 26 11 34 20 38C29 34 36 26 36 18V10L20 2Z" stroke="#33ff99" stroke-width="1.5" stroke-linejoin="round"/>
+                            <circle cx="12" cy="12" r="2.5" fill="#33ff99"/>
+                            <circle cx="20" cy="8" r="2.5" fill="#33ff99"/>
+                            <circle cx="28" cy="12" r="2.5" fill="#33ff99"/>
+                            <circle cx="16" cy="28" r="2.5" fill="#33ff99"/>
+                            <circle cx="24" cy="28" r="2.5" fill="#33ff99"/>
+                        </svg>
+                        <h1>Zed<span>Shield</span></h1>
+                    </div>
+                    <h2>Dashboard Access</h2>
+                    <p>Sign in to access the fraud detection dashboard</p>
+                    
+                    <div id="loginForm">
+                        <input type="email" id="loginEmail" placeholder="Email" required>
+                        <input type="password" id="loginPassword" placeholder="Password" required>
+                        <button id="loginBtn" class="btn btn-primary">Sign In</button>
+                        <p class="auth-switch">Don't have an account? <a href="#" id="showSignup">Sign up</a></p>
+                    </div>
+                    
+                    <div id="signupForm" style="display:none;">
+                        <input type="email" id="signupEmail" placeholder="Email" required>
+                        <input type="password" id="signupPassword" placeholder="Password" required>
+                        <input type="text" id="signupName" placeholder="Full Name" required>
+                        <button id="signupBtn" class="btn btn-primary">Create Account</button>
+                        <p class="auth-switch">Already have an account? <a href="#" id="showLogin">Sign in</a></p>
+                    </div>
+                    
+                    <div id="authMessage" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboardScreen" style="display:none;">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <svg class="logo" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 2L4 10V18C4 26 11 34 20 38C29 34 36 26 36 18V10L20 2Z" stroke="#33ff99" stroke-width="1.5" stroke-linejoin="round"/>
+                        <circle cx="12" cy="12" r="2.5" fill="#33ff99"/>
+                        <circle cx="20" cy="8" r="2.5" fill="#33ff99"/>
+                        <circle cx="28" cy="12" r="2.5" fill="#33ff99"/>
+                        <circle cx="16" cy="28" r="2.5" fill="#33ff99"/>
+                        <circle cx="24" cy="28" r="2.5" fill="#33ff99"/>
+                    </svg>
+                    <span class="logo-text">Zed<span>Shield</span></span>
+                    <span class="badge">Dashboard</span>
+                </div>
+                <div class="header-right">
+                    <div class="api-input">
+                        <label>API URL</label>
+                        <input type="text" id="apiUrl" value="http://localhost:8000" />
+                    </div>
+                    <button class="btn btn-refresh" id="refreshBtn">⟳ Refresh</button>
+                    <span class="connection-badge" id="connectionBadge">● Live</span>
+                    <span class="user-badge" id="userBadge">👤</span>
+                    <button class="btn btn-logout" id="logoutBtn">Logout</button>
+                </div>
+            </header>
+
+            <!-- Stats Strip -->
+            <section class="stats-strip">
+                <div class="stat-card-mini">
+                    <span class="stat-label">Flagged</span>
+                    <span class="stat-value" id="statFlagged">0</span>
+                </div>
+                <div class="stat-card-mini">
+                    <span class="stat-label">Under Review</span>
+                    <span class="stat-value" id="statReview">0</span>
+                </div>
+                <div class="stat-card-mini">
+                    <span class="stat-label">Escalated</span>
+                    <span class="stat-value" id="statEscalated">0</span>
+                </div>
+                <div class="stat-card-mini">
+                    <span class="stat-label">Cleared</span>
+                    <span class="stat-value" id="statCleared">0</span>
+                </div>
+            </section>
+
+            <!-- Filter Tabs -->
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-status="">All</button>
+                <button class="filter-tab" data-status="flagged">Flagged</button>
+                <button class="filter-tab" data-status="under_review">Under Review</button>
+                <button class="filter-tab" data-status="escalated">Escalated</button>
+                <button class="filter-tab" data-status="cleared">Cleared</button>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <div class="case-list" id="caseList">
+                    <div class="empty-state">
+                        <p>No cases loaded. Click refresh or wait for live events.</p>
+                    </div>
+                </div>
+                <div class="detail-panel" id="detailPanel">
+                    <div class="empty-detail">
+                        <p>Select a case to view details</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZedShield - AI Fraud Detection for ISPs</title>
+    <style>
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0a0a0a;
+            --surface: #121212;
+            --surface-light: #1a1a1a;
+            --text: #e8e8e8;
+            --text-dim: #888888;
+            --accent: #33ff99;
+            --accent-dim: #1a6644;
+            --accent-glow: rgba(51, 255, 153, 0.15);
+            --radius: 12px;
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Grid Background */
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            background-image:
+                linear-gradient(rgba(51, 255, 153, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(51, 255, 153, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse at 50% 30%, black 0%, transparent 70%);
+            -webkit-mask-image: radial-gradient(ellipse at 50% 30%, black 0%, transparent 70%);
+        }
+
+        .grid-bg::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: linear-gradient(to bottom, transparent, var(--bg));
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Logo SVG */
+        .logo-shield {
+            width: 40px;
+            height: 40px;
+            display: inline-block;
+        }
+
+        .logo-shield .node {
+            animation: pulse-node 2s ease-in-out infinite;
+        }
+        .logo-shield .node:nth-child(2) { animation-delay: 0.4s; }
+        .logo-shield .node:nth-child(3) { animation-delay: 0.8s; }
+        .logo-shield .node:nth-child(4) { animation-delay: 1.2s; }
+        .logo-shield .node:nth-child(5) { animation-delay: 1.6s; }
+
+        @keyframes pulse-node {
+            0%, 100% { opacity: 0.3; r: 2.5; }
+            50% { opacity: 1; r: 4; }
+        }
+
+        /* Nav */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 700;
+            font-size: 20px;
+        }
+
+        .nav-brand span {
+            color: var(--accent);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+            font-family: var(--font);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: var(--bg);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 30px var(--accent-glow);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        .btn-outline:hover {
+            background: var(--accent);
+            color: var(--bg);
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+
+        /* Hero */
+        .hero {
+            padding: 80px 0 60px;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: var(--accent-glow);
+            color: var(--accent);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 24px;
+            border: 1px solid rgba(51, 255, 153, 0.1);
+        }
+
+        .hero h1 {
+            font-size: 56px;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            letter-spacing: -0.02em;
+        }
+
+        .hero h1 .highlight {
+            background: linear-gradient(135deg, var(--accent), #66ffbb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: var(--text-dim);
+            max-width: 640px;
+            margin: 0 auto 40px;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Ticker */
+        .ticker-wrap {
+            overflow: hidden;
+            padding: 20px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            margin: 20px 0 60px;
+        }
+
+        .ticker {
+            display: flex;
+            gap: 60px;
+            animation: ticker-scroll 30s linear infinite;
+            width: max-content;
+        }
+
+        .ticker-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            white-space: nowrap;
+            font-size: 15px;
+            color: var(--text-dim);
+        }
+
+        .ticker-item strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .ticker-item .stat {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        @keyframes ticker-scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Sections */
+        section {
+            padding: 80px 0;
+        }
+
+        .section-label {
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 38px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .section-sub {
+            font-size: 18px;
+            color: var(--text-dim);
+            max-width: 600px;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-header .section-sub {
+            margin: 0 auto;
+        }
+
+        /* Problem Cards */
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius);
+            padding: 32px 28px;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--accent-dim);
+            transform: translateY(-2px);
+        }
+
+        .stat-card .number {
+            font-size: 42px;
+            font-weight: 800;
+            color: var(--accent);
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .label {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .stat-card .desc {
+            font-size: 14px;
+            color: var(--text-dim);
+            margin-top: 8px;
+        }
+
+        /* How It Works */
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 32px;
+        }
+
+        .step {
+            text-align: center;
+            padding: 32px 20px;
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.3s;
+        }
+
+        .step:hover {
+            border-color: var(--accent-dim);
+            transform: translateY(-2px);
+        }
+
+        .step .num {
+            display: inline-block;
+            width: 48px;
+            height: 48px;
+            line-height: 48px;
+            border-radius: 50%;
+            background: var(--accent-glow);
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 18px;
+            margin-bottom: 16px;
+        }
+
+        .step h4 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .step p {
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        .step .arrow {
+            color: var(--accent-dim);
+            font-size: 24px;
+            margin-top: 12px;
+        }
+
+        /* Features */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 32px 28px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            border-color: var(--accent-dim);
+            transform: translateY(-2px);
+        }
+
+        .feature-card .icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .feature-card h4 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .feature-card p {
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 60px;
+            text-align: center;
+            border: 1px solid rgba(51, 255, 153, 0.1);
+            margin: 40px 0;
+        }
+
+        .cta-section h2 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .cta-section p {
+            color: var(--text-dim);
+            font-size: 18px;
+            max-width: 500px;
+            margin: 0 auto 32px;
+        }
+
+        .cta-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .cta-form input,
+        .cta-form textarea {
+            padding: 14px 18px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .cta-form input:focus,
+        .cta-form textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .cta-form textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .cta-form .btn {
+            width: 100%;
+        }
+
+        /* Footer */
+        footer {
+            padding: 40px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        footer a {
+            color: var(--text-dim);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: var(--accent);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 34px;
+            }
+
+            .hero p {
+                font-size: 17px;
+            }
+
+            .nav-links {
+                gap: 16px;
+            }
+            .nav-links a {
+                font-size: 13px;
+            }
+
+            .section-title {
+                font-size: 28px;
+            }
+
+            .cta-section {
+                padding: 32px 20px;
+            }
+
+            .cta-section h2 {
+                font-size: 26px;
+            }
+
+            .steps-grid {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+                margin: 0 auto;
+            }
+
+            footer {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 28px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+
+        /* Mobile nav toggle - simple */
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 480px) {
+            .nav-toggle {
+                display: block;
+            }
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                gap: 12px;
+                padding: 20px 0;
+                width: 100%;
+            }
+            .nav-links.open {
+                display: flex;
+            }
+            nav {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+
+    <!-- Navigation -->
+    <div class="container">
+        <nav>
+            <a href="#" class="nav-brand">
+                <svg class="logo-shield" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 2L4 10V18C4 26 11 34 20 38C29 34 36 26 36 18V10L20 2Z" stroke="#33ff99" stroke-width="1.5" stroke-linejoin="round"/>
+                    <circle class="node" cx="12" cy="12" r="2.5" fill="#33ff99"/>
+                    <circle class="node" cx="20" cy="8" r="2.5" fill="#33ff99"/>
+                    <circle class="node" cx="28" cy="12" r="2.5" fill="#33ff99"/>
+                    <circle class="node" cx="16" cy="28" r="2.5" fill="#33ff99"/>
+                    <circle class="node" cx="24" cy="28" r="2.5" fill="#33ff99"/>
+                    <line x1="12" y1="12" x2="20" y2="8" stroke="#33ff99" stroke-width="1.5" opacity="0.3"/>
+                    <line x1="20" y1="8" x2="28" y2="12" stroke="#33ff99" stroke-width="1.5" opacity="0.3"/>
+                    <line x1="16" y1="28" x2="24" y2="28" stroke="#33ff99" stroke-width="1.5" opacity="0.3"/>
+                    <line x1="12" y1="12" x2="16" y2="28" stroke="#33ff99" stroke-width="1.5" opacity="0.15"/>
+                    <line x1="28" y1="12" x2="24" y2="28" stroke="#33ff99" stroke-width="1.5" opacity="0.15"/>
+                </svg>
+                Zed<span>Shield</span>
+            </a>
+            <button class="nav-toggle" id="navToggle">☰</button>
+            <div class="nav-links" id="navLinks">
+                <a href="#problem">Problem</a>
+                <a href="#how">How It Works</a>
+                <a href="#features">Features</a>
+                <a href="#contact" class="btn btn-primary">Request a Demo</a>
+            </div>
+        </nav>
+
+        <!-- Hero -->
+        <section class="hero">
+            <div class="hero-badge">🚀 ZICTA Top 100 2026</div>
+            <h1>
+                AI-Powered Fraud Detection<br>
+                for <span class="highlight">Zambia's Networks</span>
+            </h1>
+            <p>
+                ZedShield watches transaction and network-usage patterns in real time —
+                flagging fraud and money-laundering signals before losses happen.
+            </p>
+            <div class="hero-actions">
+                <a href="#contact" class="btn btn-primary">Request a Demo</a>
+                <a href="#how" class="btn btn-secondary">How It Works ↓</a>
+            </div>
+        </section>
+
+        <!-- Ticker -->
+        <div class="ticker-wrap">
+            <div class="ticker">
+                <span class="ticker-item"><span class="stat">80%+</span> <strong>Zambians</strong> targeted by digital fraud</span>
+                <span class="ticker-item"><span class="stat">K120M+</span> lost annually to <strong>mobile money scams</strong></span>
+                <span class="ticker-item"><span class="stat">141%</span> rise in <strong>account takeover</strong> fraud since 2021</span>
+                <span class="ticker-item"><span class="stat">11.5%</span> <strong>new accounts</strong> suspected fraudulent</span>
+                <span class="ticker-item"><span class="stat">K486B</span> annual <strong>mobile money</strong> transaction value</span>
+                <span class="ticker-item"><span class="stat">80%+</span> <strong>Zambians</strong> targeted by digital fraud</span>
+                <span class="ticker-item"><span class="stat">K120M+</span> lost annually to <strong>mobile money scams</strong></span>
+                <span class="ticker-item"><span class="stat">141%</span> rise in <strong>account takeover</strong> fraud since 2021</span>
+                <span class="ticker-item"><span class="stat">11.5%</span> <strong>new accounts</strong> suspected fraudulent</span>
+                <span class="ticker-item"><span class="stat">K486B</span> annual <strong>mobile money</strong> transaction value</span>
+            </div>
+        </div>
+
+        <!-- Problem Section -->
+        <section id="problem">
+            <div class="section-header">
+                <div class="section-label">The Problem</div>
+                <h2 class="section-title">Fraud is scaling faster than Zambia's defenses</h2>
+                <p class="section-sub">ISPs and MNOs carry the transactions — but most detection tools stop at the bank, not the network layer.</p>
+            </div>
+            <div class="problem-grid">
+                <div class="stat-card">
+                    <span class="number">80%+</span>
+                    <div class="label">Zambians targeted by fraud</div>
+                    <div class="desc">Digital fraud is pervasive — most Zambians have encountered it in the past year.</div>
+                </div>
+                <div class="stat-card">
+                    <span class="number">K120M+</span>
+                    <div class="label">Lost to mobile money scams</div>
+                    <div class="desc">Annual losses from fraud originating in mobile money channels.</div>
+                </div>
+                <div class="stat-card">
+                    <span class="number">141%</span>
+                    <div class="label">Rise in account takeover fraud</div>
+                    <div class="desc">Account takeover fraud has more than doubled since 2021.</div>
+                </div>
+                <div class="stat-card">
+                    <span class="number">11.5%</span>
+                    <div class="label">New accounts suspected fraudulent</div>
+                    <div class="desc">Zambia leads Africa in new-account fraud rates — a sign of growing synthetic identity use.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works -->
+        <section id="how">
+            <div class="section-header">
+                <div class="section-label">How It Works</div>
+                <h2 class="section-title">From transaction to alert in milliseconds</h2>
+                <p class="section-sub">Four steps that turn raw network data into actionable fraud intelligence.</p>
+            </div>
+            <div class="steps-grid">
+                <div class="step">
+                    <div class="num">1</div>
+                    <h4>Ingest</h4>
+                    <p>Stream transaction and network metadata from ISP/MNO systems via API.</p>
+                    <div class="arrow">↓</div>
+                </div>
+                <div class="step">
+                    <div class="num">2</div>
+                    <h4>Analyze</h4>
+                    <p>ML models score activity against fraud patterns — velocity, structuring, mule signals.</p>
+                    <div class="arrow">↓</div>
+                </div>
+                <div class="step">
+                    <div class="num">3</div>
+                    <h4>Flag</h4>
+                    <p>Real-time risk scores and alerts route straight to compliance teams.</p>
+                    <div class="arrow">↓</div>
+                </div>
+                <div class="step">
+                    <div class="num">4</div>
+                    <h4>Act</h4>
+                    <p>Analysts review, escalate, or clear cases — building a feedback loop for the model.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features -->
+        <section id="features">
+            <div class="section-header">
+                <div class="section-label">Features</div>
+                <h2 class="section-title">Built for the organizations closest to the data</h2>
+                <p class="section-sub">ZedShield is designed for Zambia's ISPs and mobile network operators.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <span class="icon">⚡</span>
+                    <h4>Real-Time Monitoring</h4>
+                    <p>Transaction scoring in under 500ms — catch fraud before money moves.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="icon">🌐</span>
+                    <h4>Network-Layer Visibility</h4>
+                    <p>Detect fraud at the network layer, where transaction data originates.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="icon">🧠</span>
+                    <h4>AI-Driven Detection</h4>
+                    <p>Combines rules, unsupervised learning, and supervised models for layered protection.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="icon">🇿🇲</span>
+                    <h4>Built for Zambia</h4>
+                    <p>Designed for local ISPs, MNOs, and ZICTA/FIC compliance requirements.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA -->
+        <section id="contact">
+            <div class="cta-section">
+                <h2>Ready to see ZedShield in action?</h2>
+                <p>Request a demo and discover how ZedShield can protect your network and your customers.</p>
+                <form class="cta-form" id="demoForm">
+                    <input type="text" name="name" placeholder="Full Name" required>
+                    <input type="email" name="email" placeholder="Email Address" required>
+                    <input type="text" name="company" placeholder="Company / Organization" required>
+                    <textarea name="message" placeholder="Tell us about your fraud detection needs..."></textarea>
+                    <button type="submit" class="btn btn-primary">Request Demo →</button>
+                </form>
+                <div id="demoResponse" style="margin-top:16px;color:var(--accent);display:none;"></div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <span>© 2026 ZedShield — Built in Zambia 🇿🇲</span>
+            <span>
+                <a href="https://zicta.zm" target="_blank">ZICTA Top 100 2026</a> ·
+                <a href="mailto:info@zedshield.ai">info@zedshield.ai</a>
+            </span>
+        </footer>
+    </div>
+
+    <script>
+        // Mobile nav toggle
+        document.getElementById('navToggle').addEventListener('click', function() {
+            document.getElementById('navLinks').classList.toggle('open');
+        });
+
+        // Demo form handler
+        document.getElementById('demoForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const form = e.target;
+            const data = {
+                name: form.name.value,
+                email: form.email.value,
+                company: form.company.value,
+                message: form.message.value,
+            };
+
+            const responseEl = document.getElementById('demoResponse');
+            responseEl.style.display = 'block';
+            responseEl.textContent = 'Sending...';
+
+            try {
+                const res = await fetch('/demo-request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    responseEl.textContent = '✓ Demo request received! We\'ll be in touch shortly.';
+                    responseEl.style.color = '#33ff99';
+                    form.reset();
+                } else {
+                    responseEl.textContent = '❌ Something went wrong. Please try again or email us directly.';
+                    responseEl.style.color = '#ff6b6b';
+                }
+            } catch (err) {
+                responseEl.textContent = '❌ Network error. Please check your connection and try again.';
+                responseEl.style.color = '#ff6b6b';
+            }
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+/* Add these auth styles to the existing CSS */
+
+/* Auth Screen */
+#authScreen {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: var(--bg);
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 420px;
+    padding: 20px;
+}
+
+.auth-box {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 40px 36px;
+    text-align: center;
+}
+
+.auth-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.auth-logo svg {
+    width: 40px;
+    height: 40px;
+}
+
+.auth-logo h1 {
+    font-size: 28px;
+    font-weight: 700;
+}
+.auth-logo h1 span {
+    color: var(--accent);
+}
+
+.auth-box h2 {
+    font-size: 20px;
+    margin-bottom: 8px;
+}
+
+.auth-box p {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-bottom: 24px;
+}
+
+.auth-box input {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+}
+.auth-box input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.auth-box .btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+}
+
+.auth-box .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+}
+.auth-box .btn-primary:hover {
+    box-shadow: 0 0 30px var(--accent-glow);
+}
+
+.auth-switch {
+    margin-top: 16px;
+    font-size: 13px;
+}
+.auth-switch a {
+    color: var(--accent);
+    cursor: pointer;
+    text-decoration: none;
+}
+.auth-switch a:hover {
+    text-decoration: underline;
+}
+
+#authMessage {
+    margin-top: 12px;
+    font-size: 14px;
+    padding: 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+/* User Badge */
+.user-badge {
+    font-size: 13px;
+    color: var(--text-dim);
+    padding: 4px 12px;
+    background: var(--surface-light);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.btn-logout {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border-color);
+    padding: 4px 16px;
+    font-size: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.btn-logout:hover {
+    border-color: #ff6b6b;
+    color: #ff6b6b;
+}
