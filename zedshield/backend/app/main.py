@@ -43,7 +43,6 @@ async def verify_token(credentials: HTTPAuthorizationCredentials = Security(secu
     token = credentials.credentials
     
     try:
-        # Verify with Supabase
         headers = {
             "Authorization": f"Bearer {token}",
             "apikey": SUPABASE_KEY,
@@ -121,11 +120,8 @@ async def dashboard_ws(websocket: WebSocket):
         manager.disconnect(websocket)
 
 @app.post("/events/ingest")
-async def ingest_event(
-    evt: IncomingEvent,
-    user = Depends(get_current_user)
-):
-    """Ingest a transaction event for scoring."""
+async def ingest_event(evt: IncomingEvent):
+    """Ingest a transaction event for scoring - NO AUTH REQUIRED for demo."""
     event_id = evt.event_id or str(uuid.uuid4())
     timestamp = evt.timestamp or datetime.utcnow()
     
@@ -151,7 +147,6 @@ async def ingest_event(
         "timestamp": timestamp.isoformat(),
         "risk_score": result["risk_score"],
         "threshold_breached": result["threshold_breached"],
-        "created_by": user.get("id")
     }
     create_event(event_data)
     
@@ -193,7 +188,6 @@ async def list_cases_endpoint(
     """List cases, optionally filtered by status."""
     cases = list_cases(status, limit)
     
-    # Get events for each case
     result = []
     for c in cases:
         event = supabase.table('events').select('*').eq('event_id', c['event_id']).execute()
