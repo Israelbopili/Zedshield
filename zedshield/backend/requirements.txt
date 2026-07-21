@@ -1,9 +1,15 @@
+ZedShield Requirements.txt
+
+Create this file as requirements.txt in your backend/ folder:
+
+```txt
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 sqlalchemy==2.0.23
 pandas==2.1.4
 numpy==1.26.4
 scikit-learn==1.3.2
+xgboost==2.0.1
 joblib==1.3.2
 scipy==1.11.4
 
@@ -15,8 +21,38 @@ pydantic-settings==2.1.0
 requests==2.31.0
 httpx==0.25.2
 
+supabase==2.31.0
+
 passlib[bcrypt]==1.7.4
 bcrypt==4.0.1
 PyJWT==2.8.0
 
 alembic==1.13.1
+```
+
+---
+
+Quick Install:
+
+```bash
+cd backend
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+---
+
+Alternative: Install One by One (if requirements.txt fails):
+
+```bash
+pip install fastapi uvicorn sqlalchemy pandas numpy scikit-learn xgboost joblib scipy
+pip install python-multipart python-dotenv pydantic pydantic-settings
+pip install requests httpx supabase
+pip install passlib bcrypt PyJWT alembic
+```
+
+---
+
+For Frontend - No Requirements!
+
+The frontend is plain HTML/CSS/JS - nothing to install! Just open the files in a browser.
