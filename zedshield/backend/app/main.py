@@ -24,6 +24,33 @@ load_dotenv()
 RISK_THRESHOLD = float(os.getenv("RISK_THRESHOLD", "0.5"))
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+NOTIFY_EMAIL = os.getenv("NOTIFY_EMAIL")  # your inbox — where new demo requests get sent
+
+async def send_email(to: str, subject: str, html: str) -> tuple[bool, Optional[str]]:
+    """Send an email via Resend. Never raises - returns (success, error_message)."""
+    if not RESEND_API_KEY:
+        return False, "Email not configured (RESEND_API_KEY missing)"
+    try:
+        async with httpx.AsyncClient(timeout=8.0) as client:
+            resp = await client.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {RESEND_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "from": "ZedShield <onboarding@resend.dev>",  # swap for your verified domain once set up
+                    "to": [to],
+                    "subject": subject,
+                    "html": html,
+                },
+            )
+        if resp.status_code >= 400:
+            return False, f"Resend API error {resp.status_code}: {resp.text[:200]}"
+        return True, None
+    except Exception as e:
+        return False, str(e)
 
 app = FastAPI(title="ZedShield API")
 
@@ -289,7 +316,46 @@ async def demo_request(request: DemoRequest):
     """Handle demo request from landing page."""
     data = request.dict()
     result = create_demo_request(data)
-    return {"status": "ok", "message": "Demo request received"}
+
+    email_status = {"confirmation_sent": False, "notification_sent": False, "issue": None}
+
+    # Confirmation email to the person who requested the demo
+    ok, err = await send_email(
+        to=request.email,
+        subject="We got your ZedShield demo request",
+        html=f"""
+            <p>Hi {request.name},</p>
+            <p>Thanks for requesting a demo of ZedShield! We've received your request
+            and will be in touch shortly.</p>
+            <p>— The ZedShield Team</p>
+        """,
+    )
+    email_status["confirmation_sent"] = ok
+    if not ok:
+        email_status["issue"] = err
+
+    # Notification email to you, so you know a request came in
+    if NOTIFY_EMAIL:
+        ok2, err2 = await send_email(
+            to=NOTIFY_EMAIL,
+            subject=f"New ZedShield demo request from {request.name}",
+            html=f"""
+                <p><strong>Name:</strong> {request.name}</p>
+                <p><strong>Email:</strong> {request.email}</p>
+                <p><strong>Company:</strong> {request.company or 'N/A'}</p>
+                <p><strong>Message:</strong> {request.message or 'N/A'}</p>
+            """,
+        )
+        email_status["notification_sent"] = ok2
+        if not ok2 and not email_status["issue"]:
+            email_status["issue"] = err2
+
+    # The demo request is always saved regardless of email outcome.
+    return {
+        "status": "ok",
+        "message": "Demo request received",
+        "email": email_status,
+    }
 
 @app.get("/health")
 async def health():
