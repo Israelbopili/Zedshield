@@ -1,16 +1,17 @@
 // ============================================
-// 1. SUPABASE CONFIGURATION (Declared ONCE)
+// SUPABASE CLIENT (Only declared ONCE)
 // ============================================
+// supabaseJs is already loaded from the CDN in index.html
+// DO NOT redeclare supabase here!
+
 const SUPABASE_URL = 'https://xmpafvuymrrxxnnpncsw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtcGFmdnV5bXJyeHhubnBuY3N3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2NDMwMjEsImV4cCI6MjEwMDIxOTAyMX0.3TKhT9SenGxMyNL-m-ObI22HQZidLBy9RHtr-_1Un_0';
 
-// ============================================
-// 2. SUPABASE CLIENT (Initialized ONCE - never redeclare)
-// ============================================
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// ✅ CORRECT: Create client once, using supabaseJs from CDN
+const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ============================================
-// 3. APPLICATION STATE
+// APPLICATION STATE
 // ============================================
 let state = {
     cases: [],
@@ -24,7 +25,7 @@ let state = {
 };
 
 // ============================================
-// 4. DOM REFS
+// DOM REFS
 // ============================================
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
@@ -59,7 +60,7 @@ const showLogin = $('#showLogin');
 const authMessage = $('#authMessage');
 
 // ============================================
-// 5. AUTH FUNCTIONS (Use the SINGLE supabase instance)
+// AUTH FUNCTIONS
 // ============================================
 function showAuthMessage(msg, isError = true) {
     authMessage.style.display = 'block';
@@ -73,7 +74,6 @@ function toggleAuthForms(showLoginForm) {
     authMessage.style.display = 'none';
 }
 
-// Login
 loginBtn.addEventListener('click', async () => {
     const email = loginEmail.value;
     const password = loginPassword.value;
@@ -97,7 +97,6 @@ loginBtn.addEventListener('click', async () => {
     }
 });
 
-// Signup
 signupBtn.addEventListener('click', async () => {
     const email = signupEmail.value;
     const password = signupPassword.value;
@@ -123,7 +122,6 @@ signupBtn.addEventListener('click', async () => {
     }
 });
 
-// Toggle
 showSignup.addEventListener('click', (e) => {
     e.preventDefault();
     toggleAuthForms(false);
@@ -133,7 +131,6 @@ showLogin.addEventListener('click', (e) => {
     toggleAuthForms(true);
 });
 
-// Logout
 logoutBtn.addEventListener('click', async () => {
     await supabase.auth.signOut();
     state.user = null;
@@ -141,9 +138,6 @@ logoutBtn.addEventListener('click', async () => {
     showAuthScreen();
 });
 
-// ============================================
-// 6. AUTH CHECK (Uses the SINGLE supabase instance)
-// ============================================
 async function checkAuth() {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
@@ -167,7 +161,7 @@ function showDashboard() {
 }
 
 // ============================================
-// 7. DASHBOARD FUNCTIONS
+// DASHBOARD FUNCTIONS
 // ============================================
 function timeAgo(dateStr) {
     const diff = Date.now() - new Date(dateStr).getTime();
@@ -194,7 +188,7 @@ function getStatusClass(status) {
 }
 
 // ============================================
-// 8. API CALLS (Uses state.session for auth)
+// API CALLS
 // ============================================
 async function apiFetch(path, options = {}) {
     const url = `${state.apiUrl}${path}`;
@@ -258,7 +252,7 @@ async function takeAction(caseId, action) {
 }
 
 // ============================================
-// 9. UI RENDER FUNCTIONS (Using textContent - SAFE)
+// UI RENDER FUNCTIONS
 // ============================================
 function updateUI() {
     renderCaseList();
@@ -279,7 +273,7 @@ function renderCaseList() {
         return;
     }
 
-    caseListEl.innerHTML = ''; // Clear
+    caseListEl.innerHTML = '';
 
     state.cases.forEach(c => {
         const card = document.createElement('div');
@@ -290,7 +284,6 @@ function renderCaseList() {
             updateUI();
         });
 
-        // Top row
         const topRow = document.createElement('div');
         topRow.className = 'top-row';
 
@@ -315,7 +308,6 @@ function renderCaseList() {
         topRow.appendChild(rightSide);
         card.appendChild(topRow);
 
-        // Bottom row
         const bottomRow = document.createElement('div');
         bottomRow.className = 'bottom-row';
 
@@ -386,7 +378,6 @@ function renderDetail() {
     const content = document.createElement('div');
     content.className = 'detail-content';
 
-    // Header
     const header = document.createElement('div');
     header.className = 'detail-header';
 
@@ -417,7 +408,6 @@ function renderDetail() {
 
     content.appendChild(header);
 
-    // Reasons
     const reasonsSection = document.createElement('div');
     reasonsSection.className = 'detail-reasons';
     
@@ -442,7 +432,6 @@ function renderDetail() {
     reasonsSection.appendChild(reasonsList);
     content.appendChild(reasonsSection);
 
-    // Event details
     const event = c.event || {};
     const eventSection = document.createElement('div');
     eventSection.className = 'detail-event';
@@ -476,7 +465,6 @@ function renderDetail() {
     
     content.appendChild(eventSection);
 
-    // Actions
     const actions = document.createElement('div');
     actions.className = 'detail-actions';
     
@@ -502,7 +490,7 @@ function renderDetail() {
 }
 
 // ============================================
-// 10. WEBSOCKET
+// WEBSOCKET
 // ============================================
 function connectWebSocket() {
     if (state.websocket) {
@@ -563,12 +551,11 @@ function connectWebSocket() {
 }
 
 // ============================================
-// 11. INITIALIZATION (Only ONCE)
+// INITIALIZATION
 // ============================================
 function initDashboard() {
     apiUrlInput.value = state.apiUrl;
     
-    // Filters
     document.querySelectorAll('.filter-tab').forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
@@ -609,10 +596,9 @@ async function initDashboardWithAuth() {
 }
 
 // ============================================
-// 12. START (Uses the SINGLE supabase instance)
+// START
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
-    // ✅ Uses the existing supabase instance - NO redeclaration
     supabase.auth.onAuthStateChange((event, session) => {
         if (event === 'SIGNED_IN' && session) {
             state.session = session;
