@@ -179,6 +179,12 @@ function getStatusClass(status) {
     return status || 'flagged';
 }
 
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
+}
+
 // ===== API Calls =====
 async function apiFetch(path, options = {}) {
     const url = `${state.apiUrl}${path}`;
@@ -265,20 +271,20 @@ function renderCaseList() {
 
     caseListEl.innerHTML = state.cases.map(c => `
         <div class="case-card ${c.case_id === state.selectedCaseId ? 'active' : ''}"
-             data-case-id="${c.case_id}">
+             data-case-id="${escapeHtml(c.case_id)}">
             <div class="top-row">
-                <span class="account-id">${c.account_id}</span>
+                <span class="account-id">${escapeHtml(c.account_id)}</span>
                 <div style="display:flex;align-items:center;gap:10px;">
                     <span class="risk-score">${(c.risk_score * 100).toFixed(1)}%</span>
-                    <span class="status-badge ${getStatusClass(c.status)}">${getStatusLabel(c.status)}</span>
+                    <span class="status-badge ${getStatusClass(c.status)}">${escapeHtml(getStatusLabel(c.status))}</span>
                 </div>
             </div>
             <div class="bottom-row">
                 <div class="reason-codes">
-                    ${(c.reason_codes || []).slice(0, 3).map(r => `<span class="reason-tag">${r}</span>`).join('')}
+                    ${(c.reason_codes || []).slice(0, 3).map(r => `<span class="reason-tag">${escapeHtml(r)}</span>`).join('')}
                     ${(c.reason_codes || []).length > 3 ? `<span class="reason-tag">+${c.reason_codes.length - 3}</span>` : ''}
                 </div>
-                <span class="time-ago">${timeAgo(c.created_at)}</span>
+                <span class="time-ago">${escapeHtml(timeAgo(c.created_at))}</span>
             </div>
         </div>
     `).join('');
@@ -328,10 +334,10 @@ function renderDetail() {
         <div class="detail-content">
             <div class="detail-header">
                 <div>
-                    <div class="detail-account">${c.account_id}</div>
-                    <div class="detail-case-id">Case: ${c.case_id.slice(0, 12)}...</div>
+                    <div class="detail-account">${escapeHtml(c.account_id)}</div>
+                    <div class="detail-case-id">Case: ${escapeHtml(c.case_id.slice(0, 12))}...</div>
                     <span class="status-badge ${getStatusClass(c.status)}" style="display:inline-block;margin-top:6px;font-size:12px;">
-                        ${getStatusLabel(c.status)}
+                        ${escapeHtml(getStatusLabel(c.status))}
                     </span>
                 </div>
                 <div class="detail-risk">${(c.risk_score * 100).toFixed(1)}%</div>
@@ -340,7 +346,7 @@ function renderDetail() {
             <div class="detail-reasons">
                 <h4>Reason Codes</h4>
                 <ul>
-                    ${(c.reason_codes || []).map(r => `<li>${r}</li>`).join('')}
+                    ${(c.reason_codes || []).map(r => `<li>${escapeHtml(r)}</li>`).join('')}
                     ${(c.reason_codes || []).length === 0 ? '<li style="color:var(--text-dim);border-left-color:var(--text-dim);">No specific reasons</li>' : ''}
                 </ul>
             </div>
@@ -349,7 +355,7 @@ function renderDetail() {
                 <h4>Triggering Event</h4>
                 <div class="event-row">
                     <span class="event-label">Counterparty</span>
-                    <span>${event.counterparty_id || 'N/A'}</span>
+                    <span>${escapeHtml(event.counterparty_id) || 'N/A'}</span>
                 </div>
                 <div class="event-row">
                     <span class="event-label">Amount</span>
@@ -357,7 +363,7 @@ function renderDetail() {
                 </div>
                 <div class="event-row">
                     <span class="event-label">Channel</span>
-                    <span>${event.channel || 'N/A'}</span>
+                    <span>${escapeHtml(event.channel) || 'N/A'}</span>
                 </div>
                 <div class="event-row">
                     <span class="event-label">Time</span>
@@ -401,7 +407,7 @@ function connectWebSocket() {
     ws.onmessage = (event) => {
         try {
             const msg = JSON.parse(event.data);
-            if (msg.type === 'new_case') {
+            if (msg.type === 'new_case' && msg.case && typeof msg.case === 'object' && msg.case.case_id) {
                 const c = msg.case;
                 const show = !state.statusFilter || c.status === state.statusFilter;
                 if (show) {
@@ -410,7 +416,7 @@ function connectWebSocket() {
                 } else {
                     state.cases = [c, ...state.cases];
                 }
-            } else if (msg.type === 'case_updated') {
+            } else if (msg.type === 'case_updated' && msg.case_id) {
                 const c = state.cases.find(c => c.case_id === msg.case_id);
                 if (c) {
                     c.status = msg.status;
