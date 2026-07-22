@@ -1,11 +1,17 @@
-// ===== Supabase Configuration =====
+// ============================================
+// 1. SUPABASE CONFIGURATION (Declared ONCE)
+// ============================================
 const SUPABASE_URL = 'https://xmpafvuymrrxxnnpncsw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtcGFmdnV5bXJyeHhubnBuY3N3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2NDMwMjEsImV4cCI6MjEwMDIxOTAyMX0.3TKhT9SenGxMyNL-m-ObI22HQZidLBy9RHtr-_1Un_0';
 
-// Initialize Supabase client
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// ============================================
+// 2. SUPABASE CLIENT (Initialized ONCE - never redeclare)
+// ============================================
+const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ===== State =====
+// ============================================
+// 3. APPLICATION STATE
+// ============================================
 let state = {
     cases: [],
     selectedCaseId: null,
@@ -17,7 +23,9 @@ let state = {
     session: null,
 };
 
-// ===== DOM Refs =====
+// ============================================
+// 4. DOM REFS
+// ============================================
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 
@@ -50,7 +58,9 @@ const showSignup = $('#showSignup');
 const showLogin = $('#showLogin');
 const authMessage = $('#authMessage');
 
-// ===== Auth =====
+// ============================================
+// 5. AUTH FUNCTIONS (Use the SINGLE supabase instance)
+// ============================================
 function showAuthMessage(msg, isError = true) {
     authMessage.style.display = 'block';
     authMessage.textContent = msg;
@@ -131,7 +141,9 @@ logoutBtn.addEventListener('click', async () => {
     showAuthScreen();
 });
 
-// ===== Auth Check =====
+// ============================================
+// 6. AUTH CHECK (Uses the SINGLE supabase instance)
+// ============================================
 async function checkAuth() {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
@@ -154,7 +166,9 @@ function showDashboard() {
     userBadge.textContent = state.user?.email?.split('@')[0] || 'User';
 }
 
-// ===== Dashboard Functions =====
+// ============================================
+// 7. DASHBOARD FUNCTIONS
+// ============================================
 function timeAgo(dateStr) {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
@@ -179,13 +193,9 @@ function getStatusClass(status) {
     return status || 'flagged';
 }
 
-function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str ?? '';
-    return div.innerHTML;
-}
-
-// ===== API Calls =====
+// ============================================
+// 8. API CALLS (Uses state.session for auth)
+// ============================================
 async function apiFetch(path, options = {}) {
     const url = `${state.apiUrl}${path}`;
     const headers = {
@@ -193,7 +203,6 @@ async function apiFetch(path, options = {}) {
         ...(options.headers || {}),
     };
     
-    // Add auth token if available
     if (state.session?.access_token) {
         headers['Authorization'] = `Bearer ${state.session.access_token}`;
     }
@@ -204,7 +213,6 @@ async function apiFetch(path, options = {}) {
     });
     
     if (res.status === 401) {
-        // Auth expired - redirect to login
         await supabase.auth.signOut();
         showAuthScreen();
         throw new Error('Session expired');
@@ -249,7 +257,9 @@ async function takeAction(caseId, action) {
     }
 }
 
-// ===== UI Updates =====
+// ============================================
+// 9. UI RENDER FUNCTIONS (Using textContent - SAFE)
+// ============================================
 function updateUI() {
     renderCaseList();
     renderStats();
@@ -269,31 +279,73 @@ function renderCaseList() {
         return;
     }
 
-    caseListEl.innerHTML = state.cases.map(c => `
-        <div class="case-card ${c.case_id === state.selectedCaseId ? 'active' : ''}"
-             data-case-id="${escapeHtml(c.case_id)}">
-            <div class="top-row">
-                <span class="account-id">${escapeHtml(c.account_id)}</span>
-                <div style="display:flex;align-items:center;gap:10px;">
-                    <span class="risk-score">${(c.risk_score * 100).toFixed(1)}%</span>
-                    <span class="status-badge ${getStatusClass(c.status)}">${escapeHtml(getStatusLabel(c.status))}</span>
-                </div>
-            </div>
-            <div class="bottom-row">
-                <div class="reason-codes">
-                    ${(c.reason_codes || []).slice(0, 3).map(r => `<span class="reason-tag">${escapeHtml(r)}</span>`).join('')}
-                    ${(c.reason_codes || []).length > 3 ? `<span class="reason-tag">+${c.reason_codes.length - 3}</span>` : ''}
-                </div>
-                <span class="time-ago">${escapeHtml(timeAgo(c.created_at))}</span>
-            </div>
-        </div>
-    `).join('');
+    caseListEl.innerHTML = ''; // Clear
 
-    caseListEl.querySelectorAll('.case-card').forEach(el => {
-        el.addEventListener('click', () => {
-            state.selectedCaseId = el.dataset.caseId;
+    state.cases.forEach(c => {
+        const card = document.createElement('div');
+        card.className = `case-card ${c.case_id === state.selectedCaseId ? 'active' : ''}`;
+        card.dataset.caseId = c.case_id;
+        card.addEventListener('click', () => {
+            state.selectedCaseId = c.case_id;
             updateUI();
         });
+
+        // Top row
+        const topRow = document.createElement('div');
+        topRow.className = 'top-row';
+
+        const account = document.createElement('span');
+        account.className = 'account-id';
+        account.textContent = c.account_id;
+        topRow.appendChild(account);
+
+        const rightSide = document.createElement('div');
+        rightSide.style.cssText = 'display:flex;align-items:center;gap:10px;';
+
+        const risk = document.createElement('span');
+        risk.className = 'risk-score';
+        risk.textContent = `${(c.risk_score * 100).toFixed(1)}%`;
+        rightSide.appendChild(risk);
+
+        const status = document.createElement('span');
+        status.className = `status-badge ${getStatusClass(c.status)}`;
+        status.textContent = getStatusLabel(c.status);
+        rightSide.appendChild(status);
+
+        topRow.appendChild(rightSide);
+        card.appendChild(topRow);
+
+        // Bottom row
+        const bottomRow = document.createElement('div');
+        bottomRow.className = 'bottom-row';
+
+        const reasonsDiv = document.createElement('div');
+        reasonsDiv.className = 'reason-codes';
+        
+        const reasons = c.reason_codes || [];
+        reasons.slice(0, 3).forEach(r => {
+            const tag = document.createElement('span');
+            tag.className = 'reason-tag';
+            tag.textContent = r;
+            reasonsDiv.appendChild(tag);
+        });
+        
+        if (reasons.length > 3) {
+            const tag = document.createElement('span');
+            tag.className = 'reason-tag';
+            tag.textContent = `+${reasons.length - 3}`;
+            reasonsDiv.appendChild(tag);
+        }
+        
+        bottomRow.appendChild(reasonsDiv);
+
+        const time = document.createElement('span');
+        time.className = 'time-ago';
+        time.textContent = timeAgo(c.created_at);
+        bottomRow.appendChild(time);
+
+        card.appendChild(bottomRow);
+        caseListEl.appendChild(card);
     });
 }
 
@@ -329,65 +381,129 @@ function renderDetail() {
         return;
     }
 
+    detailPanelEl.innerHTML = '';
+    
+    const content = document.createElement('div');
+    content.className = 'detail-content';
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'detail-header';
+
+    const headerLeft = document.createElement('div');
+    
+    const account = document.createElement('div');
+    account.className = 'detail-account';
+    account.textContent = c.account_id;
+    headerLeft.appendChild(account);
+    
+    const caseId = document.createElement('div');
+    caseId.className = 'detail-case-id';
+    caseId.textContent = `Case: ${c.case_id.slice(0, 12)}...`;
+    headerLeft.appendChild(caseId);
+    
+    const status = document.createElement('span');
+    status.className = `status-badge ${getStatusClass(c.status)}`;
+    status.style.cssText = 'display:inline-block;margin-top:6px;font-size:12px;';
+    status.textContent = getStatusLabel(c.status);
+    headerLeft.appendChild(status);
+    
+    header.appendChild(headerLeft);
+
+    const risk = document.createElement('div');
+    risk.className = 'detail-risk';
+    risk.textContent = `${(c.risk_score * 100).toFixed(1)}%`;
+    header.appendChild(risk);
+
+    content.appendChild(header);
+
+    // Reasons
+    const reasonsSection = document.createElement('div');
+    reasonsSection.className = 'detail-reasons';
+    
+    const reasonsTitle = document.createElement('h4');
+    reasonsTitle.textContent = 'Reason Codes';
+    reasonsSection.appendChild(reasonsTitle);
+    
+    const reasonsList = document.createElement('ul');
+    const reasons = c.reason_codes || [];
+    if (reasons.length === 0) {
+        const li = document.createElement('li');
+        li.textContent = 'No specific reasons';
+        li.style.cssText = 'color:var(--text-dim);border-left-color:var(--text-dim);';
+        reasonsList.appendChild(li);
+    } else {
+        reasons.forEach(r => {
+            const li = document.createElement('li');
+            li.textContent = r;
+            reasonsList.appendChild(li);
+        });
+    }
+    reasonsSection.appendChild(reasonsList);
+    content.appendChild(reasonsSection);
+
+    // Event details
     const event = c.event || {};
-    detailPanelEl.innerHTML = `
-        <div class="detail-content">
-            <div class="detail-header">
-                <div>
-                    <div class="detail-account">${escapeHtml(c.account_id)}</div>
-                    <div class="detail-case-id">Case: ${escapeHtml(c.case_id.slice(0, 12))}...</div>
-                    <span class="status-badge ${getStatusClass(c.status)}" style="display:inline-block;margin-top:6px;font-size:12px;">
-                        ${escapeHtml(getStatusLabel(c.status))}
-                    </span>
-                </div>
-                <div class="detail-risk">${(c.risk_score * 100).toFixed(1)}%</div>
-            </div>
+    const eventSection = document.createElement('div');
+    eventSection.className = 'detail-event';
+    
+    const eventTitle = document.createElement('h4');
+    eventTitle.textContent = 'Triggering Event';
+    eventSection.appendChild(eventTitle);
+    
+    const fields = [
+        ['Counterparty', event.counterparty_id || 'N/A'],
+        ['Amount', `K${(event.amount || 0).toFixed(2)}`],
+        ['Channel', event.channel || 'N/A'],
+        ['Time', event.timestamp ? new Date(event.timestamp).toLocaleString() : 'N/A']
+    ];
+    
+    fields.forEach(([label, value]) => {
+        const row = document.createElement('div');
+        row.className = 'event-row';
+        
+        const labelSpan = document.createElement('span');
+        labelSpan.className = 'event-label';
+        labelSpan.textContent = label;
+        row.appendChild(labelSpan);
+        
+        const valueSpan = document.createElement('span');
+        valueSpan.textContent = value;
+        row.appendChild(valueSpan);
+        
+        eventSection.appendChild(row);
+    });
+    
+    content.appendChild(eventSection);
 
-            <div class="detail-reasons">
-                <h4>Reason Codes</h4>
-                <ul>
-                    ${(c.reason_codes || []).map(r => `<li>${escapeHtml(r)}</li>`).join('')}
-                    ${(c.reason_codes || []).length === 0 ? '<li style="color:var(--text-dim);border-left-color:var(--text-dim);">No specific reasons</li>' : ''}
-                </ul>
-            </div>
-
-            <div class="detail-event">
-                <h4>Triggering Event</h4>
-                <div class="event-row">
-                    <span class="event-label">Counterparty</span>
-                    <span>${escapeHtml(event.counterparty_id) || 'N/A'}</span>
-                </div>
-                <div class="event-row">
-                    <span class="event-label">Amount</span>
-                    <span>K${(event.amount || 0).toFixed(2)}</span>
-                </div>
-                <div class="event-row">
-                    <span class="event-label">Channel</span>
-                    <span>${escapeHtml(event.channel) || 'N/A'}</span>
-                </div>
-                <div class="event-row">
-                    <span class="event-label">Time</span>
-                    <span>${event.timestamp ? new Date(event.timestamp).toLocaleString() : 'N/A'}</span>
-                </div>
-            </div>
-
-            <div class="detail-actions">
-                <button class="btn btn-action-escalate" data-action="escalate">🚨 Escalate</button>
-                <button class="btn btn-action-review" data-action="review">🔍 Under Review</button>
-                <button class="btn btn-action-clear" data-action="clear">✓ Clear</button>
-            </div>
-        </div>
-    `;
-
-    detailPanelEl.querySelectorAll('[data-action]').forEach(btn => {
+    // Actions
+    const actions = document.createElement('div');
+    actions.className = 'detail-actions';
+    
+    const actionsList = [
+        ['escalate', '🚨 Escalate', 'btn-action-escalate'],
+        ['review', '🔍 Under Review', 'btn-action-review'],
+        ['clear', '✓ Clear', 'btn-action-clear']
+    ];
+    
+    actionsList.forEach(([action, label, className]) => {
+        const btn = document.createElement('button');
+        btn.className = `btn ${className}`;
+        btn.textContent = label;
+        btn.dataset.action = action;
         btn.addEventListener('click', async () => {
-            const action = btn.dataset.action;
             await takeAction(c.case_id, action);
         });
+        actions.appendChild(btn);
     });
+    
+    content.appendChild(actions);
+    detailPanelEl.appendChild(content);
 }
 
-// ===== WebSocket =====
+// ============================================
+// 10. WEBSOCKET
+// ============================================
 function connectWebSocket() {
     if (state.websocket) {
         state.websocket.close();
@@ -407,7 +523,7 @@ function connectWebSocket() {
     ws.onmessage = (event) => {
         try {
             const msg = JSON.parse(event.data);
-            if (msg.type === 'new_case' && msg.case && typeof msg.case === 'object' && msg.case.case_id) {
+            if (msg.type === 'new_case') {
                 const c = msg.case;
                 const show = !state.statusFilter || c.status === state.statusFilter;
                 if (show) {
@@ -416,7 +532,7 @@ function connectWebSocket() {
                 } else {
                     state.cases = [c, ...state.cases];
                 }
-            } else if (msg.type === 'case_updated' && msg.case_id) {
+            } else if (msg.type === 'case_updated') {
                 const c = state.cases.find(c => c.case_id === msg.case_id);
                 if (c) {
                     c.status = msg.status;
@@ -446,7 +562,9 @@ function connectWebSocket() {
     };
 }
 
-// ===== Init Dashboard =====
+// ============================================
+// 11. INITIALIZATION (Only ONCE)
+// ============================================
 function initDashboard() {
     apiUrlInput.value = state.apiUrl;
     
@@ -460,10 +578,8 @@ function initDashboard() {
         });
     });
     
-    // Refresh
     refreshBtn.addEventListener('click', loadCases);
     
-    // API URL
     apiUrlInput.addEventListener('change', () => {
         state.apiUrl = apiUrlInput.value;
         localStorage.setItem('zedshield_api_url', state.apiUrl);
@@ -474,7 +590,6 @@ function initDashboard() {
     connectWebSocket();
     loadCases();
     
-    // Periodic refresh fallback
     setInterval(() => {
         if (!state.connected) {
             loadCases();
@@ -493,9 +608,11 @@ async function initDashboardWithAuth() {
     }
 }
 
-// ===== Start =====
+// ============================================
+// 12. START (Uses the SINGLE supabase instance)
+// ============================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Listen for auth state changes
+    // ✅ Uses the existing supabase instance - NO redeclaration
     supabase.auth.onAuthStateChange((event, session) => {
         if (event === 'SIGNED_IN' && session) {
             state.session = session;
