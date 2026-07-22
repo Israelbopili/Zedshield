@@ -1,10 +1,7 @@
 {
-  "builds": [
-    { "src": "frontend/**", "use": "@vercel/static" }
-  ],
-  "routes": [
-    { "src": "/", "dest": "/frontend/landing/index.html" },
-    { "src": "/dashboard", "dest": "/frontend/dashboard/index.html" },
-    { "src": "/(.*)", "dest": "/frontend/$1" }
+  "outputDirectory": "frontend",
+  "rewrites": [
+    { "source": "/", "destination": "/landing/index.html" },
+    { "source": "/dashboard", "destination": "/dashboard/index.html" }
   ]
 }
