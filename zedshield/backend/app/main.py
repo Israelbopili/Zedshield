@@ -278,6 +278,13 @@ async def health():
 async def get_me(user = Depends(get_current_user)):
     """Get current user info."""
     return {"user": user}
+@app.get("/")
+async def root():
+    return {
+        "message": "ZedShield API is running!",
+        "docs": "/docs",
+        "health": "/health"
+           }
 
 if __name__ == "__main__":
     import uvicorn
