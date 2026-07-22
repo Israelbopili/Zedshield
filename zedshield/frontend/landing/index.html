@@ -784,6 +784,7 @@
         });
 
         // Demo form handler
+        const API_URL = 'https://zedshield.onrender.com'; // ← set this to your actual deployed backend URL
         document.getElementById('demoForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const form = e.target;
@@ -799,7 +800,7 @@
             responseEl.textContent = 'Sending...';
 
             try {
-                const res = await fetch('/demo-request', {
+                const res = await fetch(`${API_URL}/demo-request`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data),
