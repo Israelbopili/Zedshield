@@ -5,6 +5,7 @@ from datetime import datetime
 from fastapi import FastAPI, Depends, HTTPException, Security, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from typing import Optional, List
 from dotenv import load_dotenv
@@ -106,6 +107,26 @@ class DemoRequest(BaseModel):
     email: str
     company: Optional[str] = None
     message: Optional[str] = None
+
+# ===== Root Endpoint =====
+@app.get("/")
+async def root():
+    """Root endpoint with API info."""
+    return {
+        "message": "ZedShield API is running! 🚀",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "health": "/health",
+        "endpoints": {
+            "POST /events/ingest": "Submit transaction for scoring",
+            "GET /cases": "List all cases (auth required)",
+            "GET /cases/{id}": "Get case details (auth required)",
+            "POST /cases/{id}/action": "Take action on case (auth required)",
+            "POST /demo-request": "Submit demo request",
+            "GET /health": "Health check",
+            "WS /ws/dashboard": "WebSocket for real-time updates"
+        }
+    }
 
 # ===== Endpoints =====
 
@@ -272,19 +293,13 @@ async def demo_request(request: DemoRequest):
 
 @app.get("/health")
 async def health():
+    """Health check endpoint."""
     return {"status": "ok", "supabase": "connected"}
 
 @app.get("/me")
 async def get_me(user = Depends(get_current_user)):
     """Get current user info."""
     return {"user": user}
-@app.get("/")
-async def root():
-    return {
-        "message": "ZedShield API is running!",
-        "docs": "/docs",
-        "health": "/health"
-           }
 
 if __name__ == "__main__":
     import uvicorn
