@@ -807,9 +807,15 @@
                 });
                 const result = await res.json();
                 if (res.ok) {
-                    responseEl.textContent = '✓ Demo request received! We\'ll be in touch shortly.';
-                    responseEl.style.color = '#33ff99';
                     form.reset();
+                    if (result.email && result.email.confirmation_sent) {
+                        responseEl.textContent = '✓ Demo request received! Check your email for confirmation.';
+                        responseEl.style.color = '#33ff99';
+                    } else {
+                        // Request was saved even though the confirmation email didn't go out
+                        responseEl.textContent = '✓ Demo request received! (Email confirmation is still being set up — we\'ll reach out directly.)';
+                        responseEl.style.color = '#ffb347';
+                    }
                 } else {
                     responseEl.textContent = '❌ Something went wrong. Please try again or email us directly.';
                     responseEl.style.color = '#ff6b6b';
