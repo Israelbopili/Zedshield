@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZedShield Dashboard</title>
-    <link rel="stylesheet" href="/dashboard/styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="styles.css">
+    <!-- ✅ Supabase SDK loaded ONCE -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
 </head>
 <body>
     <div id="app">
@@ -66,7 +68,7 @@
                 <div class="header-right">
                     <div class="api-input">
                         <label>API URL</label>
-                        <input type="text" id="apiUrl" value="http://localhost:8000" />
+                        <input type="text" id="apiUrl" value="https://zedshield.onrender.com" />
                     </div>
                     <button class="btn btn-refresh" id="refreshBtn">⟳ Refresh</button>
                     <span class="connection-badge" id="connectionBadge">● Live</span>
@@ -120,6 +122,6 @@
         </div>
     </div>
 
-    <script src="/dashboard/app.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
