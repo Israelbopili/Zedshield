@@ -1,6 +1,306 @@
-/* Add these auth styles to the existing CSS */
+/* ===== Design tokens ===== */
+:root {
+    --bg: #0a0a0a;
+    --surface: #121212;
+    --surface-light: #1a1a1a;
+    --border-color: #2a2a2a;
+    --text: #eaeaea;
+    --text-dim: #8a8a8a;
+    --accent: #33ff99;
+    --accent-glow: rgba(51, 255, 153, 0.35);
+    --danger: #ff6b6b;
+    --warning: #ffb347;
+    --radius: 12px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
 
-/* Auth Screen */
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+}
+
+.btn {
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--font);
+    font-weight: 600;
+    transition: all 0.15s ease;
+}
+.btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+}
+.btn-refresh {
+    background: var(--surface-light);
+    color: var(--text);
+    border: 1px solid var(--border-color);
+    padding: 8px 14px;
+    font-size: 13px;
+}
+.btn-refresh:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ===== Header ===== */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--surface);
+}
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.header .logo { width: 28px; height: 28px; flex-shrink: 0; }
+.logo-text { font-size: 18px; font-weight: 700; }
+.logo-text span { color: var(--accent); }
+.badge {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--surface-light);
+    border: 1px solid var(--border-color);
+    color: var(--text-dim);
+}
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.api-input {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.api-input label {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.api-input input {
+    background: var(--surface-light);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 6px 10px;
+    font-size: 12px;
+    width: 200px;
+    max-width: 40vw;
+    font-family: var(--font);
+}
+.connection-badge {
+    font-size: 12px;
+    color: var(--accent);
+    white-space: nowrap;
+}
+.connection-badge.offline { color: var(--danger); }
+
+/* ===== Stats Strip ===== */
+.stats-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    padding: 16px 24px;
+}
+.stat-card-mini {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.stat-label { font-size: 12px; color: var(--text-dim); }
+.stat-value { font-size: 24px; font-weight: 700; }
+
+/* ===== Filter Tabs ===== */
+.filter-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 0 24px 16px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.filter-tab {
+    flex-shrink: 0;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-dim);
+    padding: 7px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-family: var(--font);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+.filter-tab.active {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+}
+.filter-tab:not(.active):hover { border-color: var(--accent); color: var(--text); }
+
+/* ===== Main Content Layout ===== */
+.main-content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 16px;
+    padding: 0 24px 24px;
+    min-height: 60vh;
+}
+
+.case-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+    max-height: 75vh;
+}
+
+.case-card {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+}
+.case-card:hover { border-color: var(--accent); }
+.case-card.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+
+.top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.account-id { font-weight: 600; font-size: 14px; word-break: break-all; }
+.risk-score { font-size: 13px; color: var(--warning); font-weight: 600; }
+
+.status-badge {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.status-badge.flagged { background: rgba(255,107,107,0.15); color: var(--danger); }
+.status-badge.under_review { background: rgba(255,179,71,0.15); color: var(--warning); }
+.status-badge.escalated { background: rgba(255,60,60,0.2); color: #ff3c3c; }
+.status-badge.cleared { background: rgba(51,255,153,0.15); color: var(--accent); }
+
+.bottom-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+.reason-codes { display: flex; gap: 6px; flex-wrap: wrap; }
+.reason-tag {
+    font-size: 11px;
+    background: var(--surface-light);
+    border: 1px solid var(--border-color);
+    padding: 3px 8px;
+    border-radius: 6px;
+    color: var(--text-dim);
+}
+.time-ago { font-size: 12px; color: var(--text-dim); white-space: nowrap; }
+
+/* ===== Detail Panel ===== */
+.detail-panel {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 20px;
+    height: fit-content;
+    position: sticky;
+    top: 16px;
+}
+.empty-detail, .empty-state {
+    color: var(--text-dim);
+    text-align: center;
+    padding: 40px 16px;
+    font-size: 14px;
+}
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 16px;
+}
+.detail-account { font-size: 16px; font-weight: 700; word-break: break-all; }
+.detail-case-id { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+.detail-risk { font-size: 22px; font-weight: 700; color: var(--warning); }
+
+.detail-reasons, .detail-event { margin-bottom: 20px; }
+.detail-reasons h4, .detail-event h4 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+}
+.detail-reasons ul { list-style: none; margin: 0; padding: 0; }
+.detail-reasons li {
+    font-size: 13px;
+    padding: 8px 10px;
+    border-left: 3px solid var(--warning);
+    background: var(--surface-light);
+    border-radius: 4px;
+    margin-bottom: 6px;
+}
+.event-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-color);
+    gap: 10px;
+}
+.event-row:last-child { border-bottom: none; }
+.event-label { color: var(--text-dim); }
+
+.detail-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 20px;
+}
+.detail-actions .btn {
+    flex: 1;
+    min-width: 100px;
+    padding: 10px 12px;
+    font-size: 13px;
+}
+.btn-action-escalate { background: rgba(255,60,60,0.15); color: #ff3c3c; }
+.btn-action-review { background: rgba(255,179,71,0.15); color: var(--warning); }
+.btn-action-clear { background: rgba(51,255,153,0.15); color: var(--accent); }
+.btn-action-escalate:hover,
+.btn-action-review:hover,
+.btn-action-clear:hover { filter: brightness(1.2); }
+
+/* ===== Auth Screen ===== */
 #authScreen {
     display: none;
     justify-content: center;
@@ -129,4 +429,35 @@
 .btn-logout:hover {
     border-color: #ff6b6b;
     color: #ff6b6b;
+}
+
+/* ===== Responsive breakpoints ===== */
+
+/* Tablet: stack detail panel under case list, still 2-up stats */
+@media (max-width: 1024px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+    .case-list { max-height: none; }
+    .detail-panel { position: static; }
+}
+
+/* Mobile: single column everywhere, condensed header/stats */
+@media (max-width: 640px) {
+    .header { padding: 12px 16px; }
+    .header-right { width: 100%; justify-content: space-between; }
+    .api-input input { width: 100%; max-width: none; }
+    .badge { display: none; } /* reclaim space on small screens */
+
+    .stats-strip {
+        grid-template-columns: repeat(2, 1fr);
+        padding: 12px 16px;
+    }
+    .stat-value { font-size: 20px; }
+
+    .filter-tabs { padding: 0 16px 12px; }
+    .main-content { padding: 0 16px 16px; gap: 12px; }
+
+    .detail-actions .btn { min-width: 90px; font-size: 12px; padding: 10px 8px; }
+    .auth-box { padding: 32px 20px; }
 }
