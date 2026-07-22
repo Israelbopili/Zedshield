@@ -1,7 +1,8 @@
 // ===== Supabase Configuration =====
-const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const SUPABASE_URL = 'https://xmpafvuymrrxxnnpncsw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtcGFmdnV5bXJyeHhubnBuY3N3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2NDMwMjEsImV4cCI6MjEwMDIxOTAyMX0.3TKhT9SenGxMyNL-m-ObI22HQZidLBy9RHtr-_1Un_0';
 
+// Initialize Supabase client
 const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ===== State =====
@@ -9,7 +10,7 @@ let state = {
     cases: [],
     selectedCaseId: null,
     statusFilter: '',
-    apiUrl: localStorage.getItem('zedshield_api_url') || 'http://localhost:8000',
+    apiUrl: localStorage.getItem('zedshield_api_url') || 'https://zedshield.onrender.com',
     websocket: null,
     connected: false,
     user: null,
@@ -183,13 +184,19 @@ async function apiFetch(path, options = {}) {
     const url = `${state.apiUrl}${path}`;
     const headers = {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${state.session?.access_token}`,
         ...(options.headers || {}),
     };
+    
+    // Add auth token if available
+    if (state.session?.access_token) {
+        headers['Authorization'] = `Bearer ${state.session.access_token}`;
+    }
+    
     const res = await fetch(url, {
         ...options,
         headers,
     });
+    
     if (res.status === 401) {
         // Auth expired - redirect to login
         await supabase.auth.signOut();
@@ -211,6 +218,7 @@ async function loadCases() {
         caseListEl.innerHTML = `
             <div class="empty-state">
                 <p>⚠️ Failed to load cases. ${err.message}</p>
+                <p style="font-size:13px;margin-top:8px;">Make sure the backend is running at ${state.apiUrl}</p>
             </div>
         `;
     }
@@ -247,6 +255,9 @@ function renderCaseList() {
         caseListEl.innerHTML = `
             <div class="empty-state">
                 <p>No cases yet. Events will appear here when flagged.</p>
+                <p style="font-size:13px;margin-top:8px;color:var(--text-dim);">
+                    Run demo_replay.py to generate test cases
+                </p>
             </div>
         `;
         return;
@@ -421,6 +432,11 @@ function connectWebSocket() {
         connectionBadge.className = 'connection-badge offline';
         console.log('WebSocket disconnected, reconnecting in 3s...');
         setTimeout(connectWebSocket, 3000);
+    };
+    
+    ws.onerror = (err) => {
+        console.error('WebSocket error:', err);
+        ws.close();
     };
 }
 
